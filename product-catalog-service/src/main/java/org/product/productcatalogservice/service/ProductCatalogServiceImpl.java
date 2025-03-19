@@ -1,12 +1,13 @@
 package org.product.productcatalogservice.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.product.productcatalogservice.model.Product;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class ProductCatalogServiceImpl implements IProductCatalogService {
     private final ProductRepository productRepository;
@@ -17,26 +18,32 @@ public class ProductCatalogServiceImpl implements IProductCatalogService {
 
     @Override
     public List<Product> getAll() {
+        log.info("Fetching all products.");
         return productRepository.findAll();
     }
 
     @Override
     public List<Product> findProductsByCategory(String category) {
+        log.info("Fetching products by category: {}", category);
         return productRepository.findByCategory(category);
     }
 
     @Override
     public Optional<Product> getByProductId(int productId) {
-        return productRepository.findById(productId);
+        log.info("Fetching product by ID: {}", productId);
+        return Optional.ofNullable(productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found.")));
     }
 
     @Override
     public Product addProduct(Product product) {
+        log.info("Adding new product: {}", product.getName());
         return productRepository.save(product);
     }
 
     @Override
     public Product updateProduct(int productId, Product productDetails) {
+        log.info("Updating product with ID: {}", productId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found."));
 
@@ -50,6 +57,7 @@ public class ProductCatalogServiceImpl implements IProductCatalogService {
 
     @Override
     public void deleteProduct(int productId) {
+        log.info("Deleting product with ID: {}", productId);
         productRepository.deleteById(productId);
     }
 }
