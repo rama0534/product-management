@@ -9,8 +9,11 @@ import java.util.Optional;
 
 @Service
 public class ProductCatalogServiceImpl implements IProductCatalogService {
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+
+    public ProductCatalogServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     @Override
     public List<Product> getAll() {
@@ -18,7 +21,7 @@ public class ProductCatalogServiceImpl implements IProductCatalogService {
     }
 
     @Override
-    public List<Product> getByCategory(String category) {
+    public List<Product> findProductsByCategory(String category) {
         return productRepository.findByCategory(category);
     }
 
@@ -34,14 +37,15 @@ public class ProductCatalogServiceImpl implements IProductCatalogService {
 
     @Override
     public Product updateProduct(int productId, Product productDetails) {
-        return productRepository.findById(productId)
-                .map(product -> {
-                    product.setName(productDetails.name);
-                    product.setCategory(productDetails.category);
-                    product.setBrand(productDetails.brand);
-                    product.setPrice(productDetails.price);
-                    return productRepository.save(product);
-                }).orElseThrow(() -> new RuntimeException("Product not found."));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found."));
+
+        if (productDetails.getName() != null) product.setName(productDetails.getName());
+        if (productDetails.getCategory() != null) product.setCategory(productDetails.getCategory());
+        if (productDetails.getBrand() != null) product.setBrand(productDetails.getBrand());
+        if (productDetails.getPrice() != 0) product.setPrice(productDetails.getPrice());
+
+        return productRepository.save(product);
     }
 
     @Override

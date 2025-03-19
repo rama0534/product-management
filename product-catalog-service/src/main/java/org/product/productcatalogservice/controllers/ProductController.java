@@ -26,8 +26,8 @@ public class ProductController {
 
     @GetMapping("/products/category/{category}")
     @Operation(summary = "Get all products by category", description = "Filter all available products by category")
-    public List<Product> getByCategory(@PathVariable String category) {
-        return service.getByCategory(category);
+    public List<Product> findProductsByCategory(@PathVariable String category) {
+        return service.findProductsByCategory(category);
     }
 
     @GetMapping("/products/{productId}")
