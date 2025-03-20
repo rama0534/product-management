@@ -2,56 +2,67 @@ package org.product.productcatalogservice.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.product.productcatalogservice.model.Product;
 import org.product.productcatalogservice.service.ProductCatalogServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/catalog")
 @Tag(name = "Product API", description = "Operations related to Products")
 public class ProductController {
 
-    @Autowired
-    private ProductCatalogServiceImpl service;
+    private final ProductCatalogServiceImpl service;
+
+    public ProductController(ProductCatalogServiceImpl service) {
+        this.service = service;
+    }
 
     @GetMapping("/products")
-    @Operation(summary = "Get all products", description = "Retrieves all available products")
-    public List<Product> getAll() {
-        return service.getAll();
+    @Operation(summary = "Retrieve all products", description = "Fetches a list of all available products.")
+    public ResponseEntity<List<Product>> getAll() {
+        List<Product> products = service.getAll();
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/products/category/{category}")
-    @Operation(summary = "Get all products by category", description = "Filter all available products by category")
-    public List<Product> findProductsByCategory(@PathVariable String category) {
-        return service.findProductsByCategory(category);
+    @Operation(summary = "Retrieve products by category", description = "Fetches products belonging to the specified category.")
+    public ResponseEntity<List<Product>> findProductsByCategory(@PathVariable String category) {
+        List<Product> products = service.findProductsByCategory(category);
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/products/{productId}")
-    @Operation(summary = "Get product by ID", description = "Fetches a product based on its ID")
-    public Optional<Product>  getById(@PathVariable int productId) {
-        return service.getByProductId(productId);
+    @Operation(summary = "Retrieve product by ID", description = "Fetches a single product based on its unique identifier (ID).")
+    public ResponseEntity<Product> getById(@PathVariable int productId) {
+        return service.getByProductId(productId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/products")
-    @Operation(summary = "Create a product", description = "Create a product")
-    public Product createProduct(@RequestBody Product product) {
-        return service.addProduct(product);
+    @Operation(summary = "Create a new product", description = "Adds a new product to the catalog.")
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
+        Product createdProduct = service.addProduct(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
 
     @PutMapping("/products/{productId}")
-    @Operation(summary = "Update a product", description = "Update product details with it's ID")
-    public Product updateProduct(@RequestBody Product productDetails, @PathVariable int productId) {
-        return service.updateProduct(productId, productDetails);
+    @Operation(summary = "Update product details", description = "Updates existing product information using the provided product ID.")
+    public ResponseEntity<Product> updateProduct(@Valid @RequestBody Product productDetails, @PathVariable int productId) {
+        Product updatedProduct = service.updateProduct(productId, productDetails);
+        return ResponseEntity.ok(updatedProduct);
     }
 
     @DeleteMapping("/products/{productId}")
-    @Operation(summary = "Delete a product", description = "Delete a product details with it's ID")
-    public void deleteProduct(@PathVariable int productId) {
-         service.deleteProduct(productId);
+    @Operation(summary = "Delete product by ID", description = "Removes a product from the catalog using its unique identifier.")
+    public ResponseEntity<Void> deleteProduct(@PathVariable int productId) {
+        service.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
     }
-
 }
+
