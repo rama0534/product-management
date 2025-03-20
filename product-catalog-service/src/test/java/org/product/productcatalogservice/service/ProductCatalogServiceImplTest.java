@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.product.productcatalogservice.model.Product;
+import org.product.productcatalogservice.repository.ProductRepository;
 
 import java.util.List;
 import java.util.Optional;

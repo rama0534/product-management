@@ -2,6 +2,7 @@ package org.product.productcatalogservice.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.product.productcatalogservice.model.Product;
+import org.product.productcatalogservice.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
