@@ -1,4 +1,4 @@
-package org.product.productinventory.config;
+package org.product.inventory.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

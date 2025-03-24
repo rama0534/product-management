@@ -1,4 +1,4 @@
-package org.product.productinventory;
+package org.product.inventory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

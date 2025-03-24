@@ -1,11 +1,11 @@
-package org.product.productinventory.controller;
+package org.product.inventory.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.product.productinventory.model.Inventory;
-import org.product.productinventory.service.InventoryServiceImpl;
+import org.product.inventory.model.Inventory;
+import org.product.inventory.service.InventoryServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

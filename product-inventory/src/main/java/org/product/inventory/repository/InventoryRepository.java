@@ -1,10 +1,9 @@
-package org.product.productinventory.repository;
+package org.product.inventory.repository;
 
-import org.product.productinventory.model.Inventory;
+import org.product.inventory.model.Inventory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 

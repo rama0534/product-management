@@ -1,6 +1,6 @@
-package org.product.productinventory.service;
+package org.product.inventory.service;
 
-import org.product.productinventory.model.Inventory;
+import org.product.inventory.model.Inventory;
 
 import java.util.List;
 import java.util.Optional;

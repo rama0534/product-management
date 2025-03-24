@@ -1,8 +1,8 @@
-package org.product.productinventory.service;
+package org.product.inventory.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.product.productinventory.model.Inventory;
-import org.product.productinventory.repository.InventoryRepository;
+import org.product.inventory.model.Inventory;
+import org.product.inventory.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
