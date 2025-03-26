@@ -9,3 +9,9 @@ eureka:
   client:
     service-url:
       default-zone: http://EUREKA-REGISTRY
+
+service:
+  catalog:
+    baseurl: 'http://PRODUCT-CATALOG/api/v1/catalog/products '
+  inventory:
+    baseurl: 'http://PRODUCT-INVENTORY/api/v1/inventories'

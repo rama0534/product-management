@@ -1,11 +1,10 @@
 package org.product.info.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.product.info.exception.InvalidProductException;
-import org.product.info.exception.ProductNotFoundException;
 import org.product.info.exception.ProductServiceException;
 import org.product.info.model.CombinedProductStockDTO;
-import org.product.info.service.ProductServiceImpl;
+import org.product.info.service.ProductService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +16,9 @@ import java.util.Optional;
 @RequestMapping("/api/v1/info")
 public class InfoController {
 
-    private final ProductServiceImpl service;
+    private final ProductService service;
 
-    public InfoController(ProductServiceImpl service) {
+    public InfoController(ProductService service) {
         this.service = service;
     }
 
@@ -31,40 +30,55 @@ public class InfoController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<CombinedProductStockDTO> getProductById(@PathVariable int productId) {
+    public ResponseEntity<?> getProductById(@PathVariable int productId) {
         log.info("Fetching a product with productId {}", productId);
-        Optional<CombinedProductStockDTO>  product = service.getProductById(productId);
-        return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            Optional<CombinedProductStockDTO>  product = service.getProductById(productId);
+            if (product.isPresent()) {
+                return ResponseEntity.ok().body(product.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Product with ID " + productId + " not found.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while fetching the proudct.");
+        }
     }
 
     @PostMapping
-    public ResponseEntity<CombinedProductStockDTO> createProduct(@RequestBody CombinedProductStockDTO product) {
+    public ResponseEntity<?> createProduct(@RequestBody CombinedProductStockDTO product) {
         log.info("Adding new Product {}", product);
-        CombinedProductStockDTO savedProduct = service.addProduct(product);
-        return ResponseEntity.ok(savedProduct);
+        try {
+            CombinedProductStockDTO savedProduct = service.addProduct(product);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to Create a product");
+        }
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<CombinedProductStockDTO> updateProduct(@PathVariable int productId, @RequestBody CombinedProductStockDTO productDetails) {
+    public ResponseEntity<?> updateProduct(@PathVariable int productId, @RequestBody CombinedProductStockDTO productDetails) {
         log.info("Updating a product with productID {}", productId );
         try {
             productDetails.setProductId(productId);
             CombinedProductStockDTO updatedProduct = service.updateProduct(productDetails);
-            return ResponseEntity.ok(updatedProduct);
-        } catch (ProductNotFoundException | InvalidProductException e) {
-            throw e;
+            return ResponseEntity.ok().body(updatedProduct);
+        } catch (ProductServiceException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to update product: " + e.getMessage());
         }
-        catch (Exception e) {
-            throw new ProductServiceException("Failed to update product Details..", e);
-        }
-
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable int productId) {
+    public ResponseEntity<?> deleteProduct(@PathVariable int productId) {
         log.info("Deleting a Product with ID {}", productId);
-        service.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
-    }
+        try {
+            service.deleteProduct(productId);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Product with Id: " + productId + " deleted successfully");
+        } catch (ProductServiceException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to delete product: " + e.getMessage());
+        }
 
+    }
 }

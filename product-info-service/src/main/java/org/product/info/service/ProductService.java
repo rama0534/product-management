@@ -6,7 +6,9 @@ import org.product.info.exception.ProductServiceException;
 import org.product.info.model.CombinedProductStockDTO;
 import org.product.info.model.Inventory;
 import org.product.info.model.Product;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -16,13 +18,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ProductServiceImpl implements IProductInfoService {
-    String CATALOG_BASEURL = "http://PRODUCT-CATALOG/api/v1/catalog/products";
-    String INVENTORY_BASEURL = "http://PRODUCT-INVENTORY/api/v1/inventories";
+public class ProductService implements IProductInfoService {
+
+    @Value("${service.catalog.baseurl}")
+    private String CATALOG_BASEURL;
+
+    @Value("${service.inventory.baseurl}")
+    private String INVENTORY_BASEURL;
 
     private final RestTemplate restTemplate;
 
-    public ProductServiceImpl(RestTemplate restTemplate) {
+    public ProductService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
@@ -70,7 +76,7 @@ public class ProductServiceImpl implements IProductInfoService {
             product.setProductId(createdProduct.productId);
             restTemplate.postForObject(INVENTORY_BASEURL, product, Inventory.class);
             return product;
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             throw new ProductServiceException("Failed to create a new Product", e);
         }
     }
@@ -78,9 +84,16 @@ public class ProductServiceImpl implements IProductInfoService {
     @Override
     public CombinedProductStockDTO updateProduct(CombinedProductStockDTO productDetails) {
         log.info("Updating a product {}", productDetails);
-        restTemplate.put(CATALOG_BASEURL + "/" + productDetails.getProductId(), productDetails);
-        restTemplate.put(INVENTORY_BASEURL + "/" + productDetails.getProductId(), productDetails);
-        return productDetails;
+        if (productDetails.getProductId() == 0) {
+            throw new ProductServiceException("Invalid Product ID: Product ID cannot be zero.");
+        }
+        try {
+            restTemplate.put(CATALOG_BASEURL + "/" + productDetails.getProductId(), productDetails);
+            restTemplate.put(INVENTORY_BASEURL + "/" + productDetails.getProductId(), productDetails);
+            return productDetails;
+        } catch (RestClientException e) {
+            throw new ProductServiceException("Error while updating product:" + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -88,7 +101,7 @@ public class ProductServiceImpl implements IProductInfoService {
         log.info("Deleting a product with productID {}", productId);
         try {
             restTemplate.delete(CATALOG_BASEURL +"/" + productId);
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             throw new ProductServiceException("Failed to delete a product", e);
         }
     }
