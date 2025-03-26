@@ -1,5 +1,8 @@
 package org.product.info.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.product.info.exception.ProductNotFoundException;
+import org.product.info.exception.ProductServiceException;
 import org.product.info.model.CombinedProductStockDTO;
 import org.product.info.model.Inventory;
 import org.product.info.model.Product;
@@ -11,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ProductServiceImpl implements IProductInfoService {
     String CATALOG_BASEURL = "http://PRODUCT-CATALOG/api/v1/catalog/products";
@@ -24,6 +28,7 @@ public class ProductServiceImpl implements IProductInfoService {
 
     @Override
     public List<CombinedProductStockDTO> getAllProducts() {
+        log.info("Retrieving products");
         List<Product> products = List.of(Objects.requireNonNull(restTemplate.getForObject(CATALOG_BASEURL, Product[].class)));
         List<Inventory> inventories = List.of(Objects.requireNonNull(restTemplate.getForObject(INVENTORY_BASEURL, Inventory[].class)));
 
@@ -46,25 +51,33 @@ public class ProductServiceImpl implements IProductInfoService {
 
     @Override
     public Optional<CombinedProductStockDTO> getProductById(int productId) {
-         return getAllProducts().stream().filter(product -> product.productId == productId).findFirst();
+        log.info("Retrieving a product with product ID {}", productId);
+         return Optional.ofNullable(getAllProducts().stream()
+                 .filter(product -> product.productId == productId)
+                 .findFirst()
+                 .orElseThrow(() -> new ProductNotFoundException("Product with Id" + productId + "not found")));
     }
+
 
     @Override
     public CombinedProductStockDTO addProduct(CombinedProductStockDTO product) {
-        Product createdProduct = restTemplate.postForObject(CATALOG_BASEURL, product, Product.class);
-        if(createdProduct != null && createdProduct.getProductId() != 0) {
-            System.out.println("createdProduct..." + createdProduct);
+        log.info("Saving new product {}", product);
+        try {
+            Product createdProduct = restTemplate.postForObject(CATALOG_BASEURL, product, Product.class);
+            if(createdProduct == null || createdProduct.getProductId() == 0) {
+                throw new ProductServiceException("Failed to create a new Product");
+            }
             product.setProductId(createdProduct.productId);
             restTemplate.postForObject(INVENTORY_BASEURL, product, Inventory.class);
-        } else {
-            throw new RuntimeException("Failed to create a new Product or product Id not generated");
+            return product;
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to create a new Product", e);
         }
-        return product;
     }
 
     @Override
     public CombinedProductStockDTO updateProduct(CombinedProductStockDTO productDetails) {
-        System.out.println("Product Deatils.." + productDetails);
+        log.info("Updating a product {}", productDetails);
         restTemplate.put(CATALOG_BASEURL + "/" + productDetails.getProductId(), productDetails);
         restTemplate.put(INVENTORY_BASEURL + "/" + productDetails.getProductId(), productDetails);
         return productDetails;
@@ -72,6 +85,11 @@ public class ProductServiceImpl implements IProductInfoService {
 
     @Override
     public void deleteProduct(int productId) {
-        restTemplate.delete(CATALOG_BASEURL +"/" + productId);
+        log.info("Deleting a product with productID {}", productId);
+        try {
+            restTemplate.delete(CATALOG_BASEURL +"/" + productId);
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to delete a product", e);
+        }
     }
 }

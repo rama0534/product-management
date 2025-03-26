@@ -26,7 +26,6 @@ public class ProductController {
     @Operation(summary = "Retrieve all products", description = "Fetches a list of all available products.")
     public ResponseEntity<List<Product>> getAll() {
         List<Product> products = service.getAll();
-        System.out.println("Products from catalog " + products);
         return ResponseEntity.ok(products);
     }
 
