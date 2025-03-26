@@ -1,6 +1,5 @@
-package org.product.catalog.model;
+package org.product.info.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 
 
@@ -8,13 +7,11 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int productId;
     public String name;
     public String brand;
     public String category;
     public double price;
 }
+
